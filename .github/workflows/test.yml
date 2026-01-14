@@ -48,3 +48,7 @@ jobs:
 
       - name: Build (should have cache hits)
         run: cmake --build build --config Release
+
+      - name: Cleanup sccache
+        if: always()
+        uses: ./.github/actions/sccache-cleanup

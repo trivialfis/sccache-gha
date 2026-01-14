@@ -99,16 +99,3 @@ runs:
         echo "::group::sccache initial stats"
         sccache --show-stats
         echo "::endgroup::"
-
-  post:
-    - name: Show sccache statistics
-      shell: bash
-      run: |
-        echo "::group::sccache final stats"
-        sccache --show-stats || true
-        echo "::endgroup::"
-
-    - name: Stop sccache server
-      shell: bash
-      run: |
-        sccache --stop-server || true
