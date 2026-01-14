@@ -1,6 +1,6 @@
 name: 'Setup sccache with GitHub Cache'
 description: 'Set up sccache using the rapidsai fork with GitHub Actions cache backend'
-author: 'Your Name'
+author: 'Jiaming Yuan'
 
 inputs:
   version:
