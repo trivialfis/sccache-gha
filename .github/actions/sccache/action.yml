@@ -92,11 +92,3 @@ runs:
 
         # Set cache key prefix for organization
         echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${{ inputs.cache-key-prefix }}" >> $GITHUB_ENV
-
-        # Configure CMake to use sccache as compiler launcher
-        echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
-        echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
-
-branding:
-  icon: 'zap'
-  color: 'orange'
