@@ -20,7 +20,17 @@ jobs:
           version: 'v0.13.0-rapids.0'
           cache-key-prefix: 'sccache-test-${{ matrix.os }}'
 
-      - name: Configure CMake
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cmake -B build -S test -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+      - name: Configure CMake (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           cmake -B build -S test \
@@ -31,14 +41,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Run tests (Unix)
-        if: runner.os != 'Windows'
-        run: ./build/hello_world
-
-      - name: Run tests (Windows)
-        if: runner.os == 'Windows'
+      - name: Run tests
         shell: bash
-        run: ./build/Release/hello_world.exe
+        run: ./build/hello_world
 
       - name: Show sccache stats (mid-build)
         run: sccache --show-stats
@@ -48,7 +53,17 @@ jobs:
         shell: bash
         run: rm -rf build
 
-      - name: Configure CMake (second build)
+      - name: Configure CMake second build (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cmake -B build -S test -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+      - name: Configure CMake second build (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           cmake -B build -S test \
