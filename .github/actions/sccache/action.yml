@@ -6,7 +6,7 @@ inputs:
   version:
     description: 'Version of sccache to install (e.g., v0.8.2)'
     required: false
-    default: 'v0.8.2'
+    default: 'v0.13.0-rapids.0'
   cache-key-prefix:
     description: 'Prefix for the cache key'
     required: false
@@ -56,14 +56,7 @@ runs:
         OS="${{ steps.platform.outputs.os }}"
 
         # Construct download URL for rapidsai fork
-        FILENAME="sccache-${VERSION}-${ARCH}-${OS}"
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          FILENAME="${FILENAME}.zip"
-        else
-          FILENAME="${FILENAME}.tar.gz"
-        fi
-
-        URL="https://github.com/rapidsai/sccache/releases/download/${VERSION}/${FILENAME}"
+        URL="https://github.com/rapidsai/sccache/releases/download/${VERSION}/sccache-${VERSION}-x86_64-unknown-linux-musl.tar.gz"
         echo "Downloading sccache from: ${URL}"
 
         # Create install directory
@@ -74,14 +67,9 @@ runs:
         cd /tmp
         curl -fsSL -o sccache-archive "${URL}"
 
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          unzip sccache-archive
-          mv sccache-${VERSION}-${ARCH}-${OS}/sccache.exe "${INSTALL_DIR}/"
-        else
-          tar -xzf sccache-archive
-          mv sccache-${VERSION}-${ARCH}-${OS}/sccache "${INSTALL_DIR}/"
-          chmod +x "${INSTALL_DIR}/sccache"
-        fi
+        tar -xzf sccache-archive
+        mv sccache-${VERSION}-${ARCH}-${OS}/sccache "${INSTALL_DIR}/"
+        chmod +x "${INSTALL_DIR}/sccache"
 
         # Add to PATH
         echo "${INSTALL_DIR}" >> $GITHUB_PATH
