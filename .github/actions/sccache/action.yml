@@ -6,7 +6,7 @@ inputs:
   version:
     description: 'Version of sccache to install (e.g., v0.8.2)'
     required: false
-    default: 'v0.8.2'
+    default: 'v0.13.0-rapids.0'
   cache-key-prefix:
     description: 'Prefix for the cache key'
     required: false
@@ -56,14 +56,7 @@ runs:
         OS="${{ steps.platform.outputs.os }}"
 
         # Construct download URL for rapidsai fork
-        FILENAME="sccache-${VERSION}-${ARCH}-${OS}"
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          FILENAME="${FILENAME}.zip"
-        else
-          FILENAME="${FILENAME}.tar.gz"
-        fi
-
-        URL="https://github.com/rapidsai/sccache/releases/download/${VERSION}/${FILENAME}"
+        URL="https://github.com/rapidsai/sccache/releases/download/${VERSION}/sccache-${VERSION}-x86_64-unknown-linux-musl.tar.gz"
         echo "Downloading sccache from: ${URL}"
 
         # Create install directory
@@ -74,14 +67,9 @@ runs:
         cd /tmp
         curl -fsSL -o sccache-archive "${URL}"
 
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          unzip sccache-archive
-          mv sccache-${VERSION}-${ARCH}-${OS}/sccache.exe "${INSTALL_DIR}/"
-        else
-          tar -xzf sccache-archive
-          mv sccache-${VERSION}-${ARCH}-${OS}/sccache "${INSTALL_DIR}/"
-          chmod +x "${INSTALL_DIR}/sccache"
-        fi
+        tar -xzf sccache-archive
+        mv sccache-${VERSION}-${ARCH}-${OS}/sccache "${INSTALL_DIR}/"
+        chmod +x "${INSTALL_DIR}/sccache"
 
         # Add to PATH
         echo "${INSTALL_DIR}" >> $GITHUB_PATH
@@ -93,21 +81,17 @@ runs:
       uses: actions/github-script@v7
       with:
         script: |
-          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+          core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
           core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
     - name: Configure sccache for GitHub Actions cache
       shell: bash
       run: |
         # Enable GitHub Actions cache backend
-        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        echo "SCCACHE_GHA_ENABLED=on" >> $GITHUB_ENV
 
         # Set cache key prefix for organization
         echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${{ inputs.cache-key-prefix }}" >> $GITHUB_ENV
-
-        # Configure CMake to use sccache as compiler launcher
-        echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
-        echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
 
     - name: Start sccache server
       shell: bash
@@ -116,7 +100,3 @@ runs:
         echo "::group::sccache initial stats"
         sccache --show-stats
         echo "::endgroup::"
-
-branding:
-  icon: 'zap'
-  color: 'orange'
