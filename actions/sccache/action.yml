@@ -52,7 +52,7 @@ runs:
     - name: Determine platform (Windows)
       if: runner.os == 'Windows'
       id: platform-windows
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "OS: ${{ runner.os }}"
         Write-Host "ARCH: ${{ runner.arch }}"
@@ -101,7 +101,7 @@ runs:
 
     - name: Download and install sccache (Windows)
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
       run: |
         $VERSION = "${{ inputs.version }}"
         $ARCH = "${{ steps.platform-windows.outputs.arch }}"
@@ -141,7 +141,7 @@ runs:
 
     - name: Configure sccache (Windows)
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
       run: |
         # Set sccache directory
         $SCCACHE_DIR = "$env:USERPROFILE\.cache\sccache"
@@ -175,7 +175,7 @@ runs:
 
     - name: Start sccache server (Windows)
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
       run: |
         sccache --start-server
         Write-Host "::group::sccache initial stats"
