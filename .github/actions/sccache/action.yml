@@ -4,7 +4,7 @@ author: 'Your Name'
 
 inputs:
   version:
-    description: 'Version of sccache to install (e.g., v0.8.2)'
+    description: 'Version of sccache to install'
     required: false
     default: 'v0.13.0-rapids.0'
   cache-key-prefix:
@@ -77,21 +77,20 @@ runs:
         # Verify installation
         "${INSTALL_DIR}/sccache" --version
 
-    - name: Export GitHub Actions cache environment
-      uses: actions/github-script@v7
-      with:
-        script: |
-          core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
-          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-
-    - name: Configure sccache for GitHub Actions cache
+    - name: Configure sccache
       shell: bash
       run: |
-        # Enable GitHub Actions cache backend
-        echo "SCCACHE_GHA_ENABLED=on" >> $GITHUB_ENV
+        # Set sccache directory
+        SCCACHE_DIR="${HOME}/.cache/sccache"
+        mkdir -p "${SCCACHE_DIR}"
+        echo "SCCACHE_DIR=${SCCACHE_DIR}" >> $GITHUB_ENV
 
-        # Set cache key prefix for organization
-        echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${{ inputs.cache-key-prefix }}" >> $GITHUB_ENV
+    - name: Restore sccache cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/sccache
+        key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-0
+        restore-keys: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
 
     - name: Start sccache server
       shell: bash
