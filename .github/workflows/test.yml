@@ -5,8 +5,9 @@ on: [push]
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-14]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -20,6 +21,7 @@ jobs:
           cache-key-prefix: 'sccache-test-${{ matrix.os }}'
 
       - name: Configure CMake
+        shell: bash
         run: |
           cmake -B build -S test \
             -DCMAKE_BUILD_TYPE=Release \
@@ -29,17 +31,25 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Run tests
+      - name: Run tests (Unix)
+        if: runner.os != 'Windows'
         run: ./build/hello_world
+
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: ./build/Release/hello_world.exe
 
       - name: Show sccache stats (mid-build)
         run: sccache --show-stats
 
       # Build again to verify cache hits
       - name: Clean build directory
+        shell: bash
         run: rm -rf build
 
       - name: Configure CMake (second build)
+        shell: bash
         run: |
           cmake -B build -S test \
             -DCMAKE_BUILD_TYPE=Release \
