@@ -58,3 +58,6 @@ jobs:
 
       - name: Build (should have cache hits)
         run: cmake --build build --config Release
+
+      - name: Show sccache stats (post-build)
+        run: sccache --show-stats
