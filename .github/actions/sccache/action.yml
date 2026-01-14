@@ -97,14 +97,6 @@ runs:
         echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
         echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
 
-    - name: Start sccache server
-      shell: bash
-      run: |
-        sccache --start-server || true
-        echo "::group::sccache initial stats"
-        sccache --show-stats
-        echo "::endgroup::"
-
 branding:
   icon: 'zap'
   color: 'orange'
