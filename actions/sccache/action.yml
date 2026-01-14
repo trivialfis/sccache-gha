@@ -118,17 +118,18 @@ runs:
 
         # Download and extract
         $TempDir = $env:TEMP
-        $ArchivePath = Join-Path $TempDir "sccache-archive.zip"
+        $ArchivePath = "$TempDir\sccache-archive.zip"
         Invoke-WebRequest -Uri $URL -OutFile $ArchivePath
 
         Expand-Archive -Path $ArchivePath -DestinationPath $TempDir -Force
-        Move-Item -Path (Join-Path $TempDir $FILENAME "sccache.exe") -Destination $INSTALL_DIR -Force
+        $SccacheExe = "$TempDir\$FILENAME\sccache.exe"
+        Move-Item -Path $SccacheExe -Destination $INSTALL_DIR -Force
 
         # Add to PATH
         echo "$INSTALL_DIR" >> $env:GITHUB_PATH
 
         # Verify installation
-        & (Join-Path $INSTALL_DIR "sccache.exe") --version
+        & "$INSTALL_DIR\sccache.exe" --version
 
     - name: Configure sccache (Unix)
       if: runner.os != 'Windows'
