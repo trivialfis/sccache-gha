@@ -1,0 +1,137 @@
+name: 'Setup sccache with GitHub Cache'
+description: 'Set up sccache using the rapidsai fork with GitHub Actions cache backend'
+author: 'Jiaming Yuan'
+
+inputs:
+  version:
+    description: 'Version of sccache to install'
+    required: false
+    default: 'v0.13.0-rapids.0'
+  cache-key-prefix:
+    description: 'Prefix for the cache key'
+    required: false
+    default: 'sccache'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Determine platform
+      id: platform
+      shell: bash
+      run: |
+        echo "OS: ${{ runner.os }}"
+        echo "ARCH: ${{ runner.arch }}"
+
+        case "${{ runner.os }}" in
+          Linux)
+            echo "os=unknown-linux-musl" >> $GITHUB_OUTPUT
+            ;;
+          macOS)
+            echo "os=apple-darwin" >> $GITHUB_OUTPUT
+            ;;
+          Windows)
+            echo "os=pc-windows-msvc" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "Unsupported OS: ${{ runner.os }}"
+            exit 1
+            ;;
+        esac
+
+        case "${{ runner.arch }}" in
+          X64)
+            echo "arch=x86_64" >> $GITHUB_OUTPUT
+            ;;
+          ARM64)
+            echo "arch=aarch64" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "Unsupported architecture: ${{ runner.arch }}"
+            exit 1
+            ;;
+        esac
+
+    - name: Download and install sccache (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        VERSION="${{ inputs.version }}"
+        ARCH="${{ steps.platform.outputs.arch }}"
+        OS="${{ steps.platform.outputs.os }}"
+
+        # Construct download URL for rapidsai fork
+        FILENAME="sccache-${VERSION}-${ARCH}-${OS}"
+        URL="https://github.com/rapidsai/sccache/releases/download/${VERSION}/${FILENAME}.tar.gz"
+        echo "Downloading sccache from: ${URL}"
+
+        # Create install directory
+        INSTALL_DIR="${HOME}/.local/bin"
+        mkdir -p "${INSTALL_DIR}"
+
+        # Download and extract
+        cd /tmp
+        curl -fsSL -o sccache-archive.tar.gz "${URL}"
+
+        tar -xzf sccache-archive.tar.gz
+        mv "${FILENAME}/sccache" "${INSTALL_DIR}/"
+        chmod +x "${INSTALL_DIR}/sccache"
+
+        # Add to PATH
+        echo "${INSTALL_DIR}" >> $GITHUB_PATH
+
+        # Verify installation
+        "${INSTALL_DIR}/sccache" --version
+
+    - name: Download and install sccache (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $VERSION = "${{ inputs.version }}"
+        $ARCH = "${{ steps.platform.outputs.arch }}"
+        $OS = "${{ steps.platform.outputs.os }}"
+
+        # Construct download URL for rapidsai fork
+        $FILENAME = "sccache-${VERSION}-${ARCH}-${OS}"
+        $URL = "https://github.com/rapidsai/sccache/releases/download/${VERSION}/${FILENAME}.zip"
+        Write-Host "Downloading sccache from: $URL"
+
+        # Create install directory
+        $INSTALL_DIR = "$env:USERPROFILE\.local\bin"
+        New-Item -ItemType Directory -Force -Path $INSTALL_DIR | Out-Null
+
+        # Download and extract
+        $TempDir = $env:TEMP
+        $ArchivePath = Join-Path $TempDir "sccache-archive.zip"
+        Invoke-WebRequest -Uri $URL -OutFile $ArchivePath
+
+        Expand-Archive -Path $ArchivePath -DestinationPath $TempDir -Force
+        Move-Item -Path (Join-Path $TempDir $FILENAME "sccache.exe") -Destination $INSTALL_DIR -Force
+
+        # Add to PATH
+        echo "$INSTALL_DIR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+        # Verify installation
+        & (Join-Path $INSTALL_DIR "sccache.exe") --version
+
+    - name: Configure sccache
+      shell: bash
+      run: |
+        # Set sccache directory
+        SCCACHE_DIR="${HOME}/.cache/sccache"
+        mkdir -p "${SCCACHE_DIR}"
+        echo "SCCACHE_DIR=${SCCACHE_DIR}" >> $GITHUB_ENV
+
+    - name: Restore sccache cache
+      uses: actions/cache@v5.0.1
+      with:
+        path: ~/.cache/sccache
+        key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+        restore-keys: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
+
+    - name: Start sccache server
+      shell: bash
+      run: |
+        sccache --start-server || true
+        echo "::group::sccache initial stats"
+        sccache --show-stats
+        echo "::endgroup::"
