@@ -5,8 +5,9 @@ on: [push]
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-14]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -29,15 +30,25 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Run tests
+      - name: Run tests (Unix)
+        if: runner.os != 'Windows'
         run: ./build/hello_world
+
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        run: ./build/Release/hello_world.exe
 
       - name: Show sccache stats (mid-build)
         run: sccache --show-stats
 
       # Build again to verify cache hits
-      - name: Clean build directory
+      - name: Clean build directory (Unix)
+        if: runner.os != 'Windows'
         run: rm -rf build
+
+      - name: Clean build directory (Windows)
+        if: runner.os == 'Windows'
+        run: Remove-Item -Recurse -Force build
 
       - name: Configure CMake (second build)
         run: |

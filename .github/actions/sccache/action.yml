@@ -51,7 +51,8 @@ runs:
             ;;
         esac
 
-    - name: Download and install sccache
+    - name: Download and install sccache (Unix)
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         VERSION="${{ inputs.version }}"
@@ -59,7 +60,8 @@ runs:
         OS="${{ steps.platform.outputs.os }}"
 
         # Construct download URL for rapidsai fork
-        URL="https://github.com/rapidsai/sccache/releases/download/${VERSION}/sccache-${VERSION}-x86_64-unknown-linux-musl.tar.gz"
+        FILENAME="sccache-${VERSION}-${ARCH}-${OS}"
+        URL="https://github.com/rapidsai/sccache/releases/download/${VERSION}/${FILENAME}.tar.gz"
         echo "Downloading sccache from: ${URL}"
 
         # Create install directory
@@ -68,10 +70,10 @@ runs:
 
         # Download and extract
         cd /tmp
-        curl -fsSL -o sccache-archive "${URL}"
+        curl -fsSL -o sccache-archive.tar.gz "${URL}"
 
-        tar -xzf sccache-archive
-        mv sccache-${VERSION}-${ARCH}-${OS}/sccache "${INSTALL_DIR}/"
+        tar -xzf sccache-archive.tar.gz
+        mv "${FILENAME}/sccache" "${INSTALL_DIR}/"
         chmod +x "${INSTALL_DIR}/sccache"
 
         # Add to PATH
@@ -79,6 +81,37 @@ runs:
 
         # Verify installation
         "${INSTALL_DIR}/sccache" --version
+
+    - name: Download and install sccache (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $VERSION = "${{ inputs.version }}"
+        $ARCH = "${{ steps.platform.outputs.arch }}"
+        $OS = "${{ steps.platform.outputs.os }}"
+
+        # Construct download URL for rapidsai fork
+        $FILENAME = "sccache-${VERSION}-${ARCH}-${OS}"
+        $URL = "https://github.com/rapidsai/sccache/releases/download/${VERSION}/${FILENAME}.zip"
+        Write-Host "Downloading sccache from: $URL"
+
+        # Create install directory
+        $INSTALL_DIR = "$env:USERPROFILE\.local\bin"
+        New-Item -ItemType Directory -Force -Path $INSTALL_DIR | Out-Null
+
+        # Download and extract
+        $TempDir = $env:TEMP
+        $ArchivePath = Join-Path $TempDir "sccache-archive.zip"
+        Invoke-WebRequest -Uri $URL -OutFile $ArchivePath
+
+        Expand-Archive -Path $ArchivePath -DestinationPath $TempDir -Force
+        Move-Item -Path (Join-Path $TempDir $FILENAME "sccache.exe") -Destination $INSTALL_DIR -Force
+
+        # Add to PATH
+        echo "$INSTALL_DIR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+        # Verify installation
+        & (Join-Path $INSTALL_DIR "sccache.exe") --version
 
     - name: Configure sccache
       shell: bash
