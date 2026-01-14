@@ -12,17 +12,6 @@ runs:
         sccache --show-stats || true
         echo "::endgroup::"
 
-    - name: Show sccache error log
-      shell: bash
-      run: |
-        echo "::group::sccache error log"
-        if [[ -f /tmp/sccache.log ]]; then
-          cat /tmp/sccache.log
-        else
-          echo "No sccache log file found"
-        fi
-        echo "::endgroup::"
-
     - name: Stop sccache server
       shell: bash
       run: |
