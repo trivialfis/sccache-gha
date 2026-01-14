@@ -92,3 +92,11 @@ runs:
 
         # Set cache key prefix for organization
         echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${{ inputs.cache-key-prefix }}" >> $GITHUB_ENV
+
+    - name: Start sccache server
+      shell: bash
+      run: |
+        sccache --start-server || true
+        echo "::group::sccache initial stats"
+        sccache --show-stats
+        echo "::endgroup::"
