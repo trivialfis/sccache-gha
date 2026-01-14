@@ -28,8 +28,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER_LAUNCHER=sccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
-            -DCMAKE_C_COMPILER=cl \
-            -DCMAKE_CXX_COMPILER=cl \
             -DCMAKE_IGNORE_PATH="C:/mingw64/bin/;C:/Strawberry/c/bin/"
 
       - name: Configure CMake (Unix)
@@ -64,8 +62,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER_LAUNCHER=sccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
-            -DCMAKE_C_COMPILER=cl \
-            -DCMAKE_CXX_COMPILER=cl \
             -DCMAKE_IGNORE_PATH="C:/mingw64/bin/;C:/Strawberry/c/bin/"
 
       - name: Configure CMake second build (Unix)
