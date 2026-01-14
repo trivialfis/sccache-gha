@@ -52,7 +52,7 @@ runs:
     - name: Determine platform (Windows)
       if: runner.os == 'Windows'
       id: platform-windows
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "OS: ${{ runner.os }}"
         Write-Host "ARCH: ${{ runner.arch }}"
@@ -101,7 +101,7 @@ runs:
 
     - name: Download and install sccache (Windows)
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
       run: |
         $VERSION = "${{ inputs.version }}"
         $ARCH = "${{ steps.platform-windows.outputs.arch }}"
@@ -118,17 +118,18 @@ runs:
 
         # Download and extract
         $TempDir = $env:TEMP
-        $ArchivePath = Join-Path $TempDir "sccache-archive.zip"
+        $ArchivePath = "$TempDir\sccache-archive.zip"
         Invoke-WebRequest -Uri $URL -OutFile $ArchivePath
 
         Expand-Archive -Path $ArchivePath -DestinationPath $TempDir -Force
-        Move-Item -Path (Join-Path $TempDir $FILENAME "sccache.exe") -Destination $INSTALL_DIR -Force
+        $SccacheExe = "$TempDir\$FILENAME\sccache.exe"
+        Move-Item -Path $SccacheExe -Destination $INSTALL_DIR -Force
 
         # Add to PATH
         echo "$INSTALL_DIR" >> $env:GITHUB_PATH
 
         # Verify installation
-        & (Join-Path $INSTALL_DIR "sccache.exe") --version
+        & "$INSTALL_DIR\sccache.exe" --version
 
     - name: Configure sccache (Unix)
       if: runner.os != 'Windows'
@@ -141,7 +142,7 @@ runs:
 
     - name: Configure sccache (Windows)
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
       run: |
         # Set sccache directory
         $SCCACHE_DIR = "$env:USERPROFILE\.cache\sccache"
@@ -175,7 +176,7 @@ runs:
 
     - name: Start sccache server (Windows)
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
       run: |
         sccache --start-server
         Write-Host "::group::sccache initial stats"
