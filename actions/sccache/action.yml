@@ -15,8 +15,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Determine platform
-      id: platform
+    - name: Determine platform (Unix)
+      if: runner.os != 'Windows'
+      id: platform-unix
       shell: bash
       run: |
         echo "OS: ${{ runner.os }}"
@@ -28,9 +29,6 @@ runs:
             ;;
           macOS)
             echo "os=apple-darwin" >> $GITHUB_OUTPUT
-            ;;
-          Windows)
-            echo "os=pc-windows-msvc" >> $GITHUB_OUTPUT
             ;;
           *)
             echo "Unsupported OS: ${{ runner.os }}"
@@ -51,13 +49,32 @@ runs:
             ;;
         esac
 
+    - name: Determine platform (Windows)
+      if: runner.os == 'Windows'
+      id: platform-windows
+      shell: pwsh
+      run: |
+        Write-Host "OS: ${{ runner.os }}"
+        Write-Host "ARCH: ${{ runner.arch }}"
+
+        echo "os=pc-windows-msvc" >> $env:GITHUB_OUTPUT
+
+        switch ("${{ runner.arch }}") {
+          "X64" { echo "arch=x86_64" >> $env:GITHUB_OUTPUT }
+          "ARM64" { echo "arch=aarch64" >> $env:GITHUB_OUTPUT }
+          default {
+            Write-Host "Unsupported architecture: ${{ runner.arch }}"
+            exit 1
+          }
+        }
+
     - name: Download and install sccache (Unix)
       if: runner.os != 'Windows'
       shell: bash
       run: |
         VERSION="${{ inputs.version }}"
-        ARCH="${{ steps.platform.outputs.arch }}"
-        OS="${{ steps.platform.outputs.os }}"
+        ARCH="${{ steps.platform-unix.outputs.arch }}"
+        OS="${{ steps.platform-unix.outputs.os }}"
 
         # Construct download URL for rapidsai fork
         FILENAME="sccache-${VERSION}-${ARCH}-${OS}"
@@ -87,8 +104,8 @@ runs:
       shell: pwsh
       run: |
         $VERSION = "${{ inputs.version }}"
-        $ARCH = "${{ steps.platform.outputs.arch }}"
-        $OS = "${{ steps.platform.outputs.os }}"
+        $ARCH = "${{ steps.platform-windows.outputs.arch }}"
+        $OS = "${{ steps.platform-windows.outputs.os }}"
 
         # Construct download URL for rapidsai fork
         $FILENAME = "sccache-${VERSION}-${ARCH}-${OS}"
@@ -108,12 +125,13 @@ runs:
         Move-Item -Path (Join-Path $TempDir $FILENAME "sccache.exe") -Destination $INSTALL_DIR -Force
 
         # Add to PATH
-        echo "$INSTALL_DIR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "$INSTALL_DIR" >> $env:GITHUB_PATH
 
         # Verify installation
         & (Join-Path $INSTALL_DIR "sccache.exe") --version
 
-    - name: Configure sccache
+    - name: Configure sccache (Unix)
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         # Set sccache directory
@@ -121,17 +139,45 @@ runs:
         mkdir -p "${SCCACHE_DIR}"
         echo "SCCACHE_DIR=${SCCACHE_DIR}" >> $GITHUB_ENV
 
-    - name: Restore sccache cache
+    - name: Configure sccache (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Set sccache directory
+        $SCCACHE_DIR = "$env:USERPROFILE\.cache\sccache"
+        New-Item -ItemType Directory -Force -Path $SCCACHE_DIR | Out-Null
+        echo "SCCACHE_DIR=$SCCACHE_DIR" >> $env:GITHUB_ENV
+
+    - name: Restore sccache cache (Unix)
+      if: runner.os != 'Windows'
       uses: actions/cache@v5.0.1
       with:
         path: ~/.cache/sccache
         key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
         restore-keys: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
 
-    - name: Start sccache server
+    - name: Restore sccache cache (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/cache@v5.0.1
+      with:
+        path: ~\.cache\sccache
+        key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+        restore-keys: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
+
+    - name: Start sccache server (Unix)
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         sccache --start-server || true
         echo "::group::sccache initial stats"
         sccache --show-stats
         echo "::endgroup::"
+
+    - name: Start sccache server (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        sccache --start-server
+        Write-Host "::group::sccache initial stats"
+        sccache --show-stats
+        Write-Host "::endgroup::"
