@@ -19,6 +19,9 @@ runs:
       id: platform
       shell: bash
       run: |
+        echo "OS: ${{ runner.os }}"
+        echo "ARCH: ${{ runner.arch }}"
+
         case "${{ runner.os }}" in
           Linux)
             echo "os=unknown-linux-musl" >> $GITHUB_OUTPUT
