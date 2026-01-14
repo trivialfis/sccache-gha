@@ -88,7 +88,7 @@ runs:
       shell: bash
       run: |
         # Enable GitHub Actions cache backend
-        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        echo "SCCACHE_GHA_ENABLED=on >> $GITHUB_ENV
 
         # Set cache key prefix for organization
         echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${{ inputs.cache-key-prefix }}" >> $GITHUB_ENV
