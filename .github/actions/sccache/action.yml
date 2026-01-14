@@ -81,7 +81,7 @@ runs:
       uses: actions/github-script@v7
       with:
         script: |
-          core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
+          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
           core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
     - name: Configure sccache for GitHub Actions cache
@@ -105,7 +105,8 @@ runs:
         echo "::group::sccache environment check"
         echo "SCCACHE_GHA_ENABLED=${SCCACHE_GHA_ENABLED}"
         echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${SCCACHE_GHA_CACHE_KEY_PREFIX}"
-        echo "ACTIONS_RESULTS_URL is set: $([[ -n \"${ACTIONS_RESULTS_URL}\" ]] && echo 'yes' || echo 'NO - this may cause cache write errors!')"
+        echo "ACTIONS_CACHE_URL=${ACTIONS_CACHE_URL}"
+        echo "ACTIONS_CACHE_URL is set: $([[ -n \"${ACTIONS_CACHE_URL}\" ]] && echo 'yes' || echo 'NO - this may cause cache write errors!')"
         echo "ACTIONS_RUNTIME_TOKEN is set: $([[ -n \"${ACTIONS_RUNTIME_TOKEN}\" ]] && echo 'yes' || echo 'NO - this may cause cache write errors!')"
         echo "::endgroup::"
 
