@@ -93,6 +93,22 @@ runs:
         # Set cache key prefix for organization
         echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${{ inputs.cache-key-prefix }}" >> $GITHUB_ENV
 
+        # Enable debug logging (set to 'debug' or 'trace' for more details)
+        echo "SCCACHE_LOG=debug" >> $GITHUB_ENV
+
+        # Log to file for easier debugging
+        echo "SCCACHE_ERROR_LOG=/tmp/sccache.log" >> $GITHUB_ENV
+
+    - name: Verify environment variables
+      shell: bash
+      run: |
+        echo "::group::sccache environment check"
+        echo "SCCACHE_GHA_ENABLED=${SCCACHE_GHA_ENABLED}"
+        echo "SCCACHE_GHA_CACHE_KEY_PREFIX=${SCCACHE_GHA_CACHE_KEY_PREFIX}"
+        echo "ACTIONS_RESULTS_URL is set: $([[ -n \"${ACTIONS_RESULTS_URL}\" ]] && echo 'yes' || echo 'NO - this may cause cache write errors!')"
+        echo "ACTIONS_RUNTIME_TOKEN is set: $([[ -n \"${ACTIONS_RUNTIME_TOKEN}\" ]] && echo 'yes' || echo 'NO - this may cause cache write errors!')"
+        echo "::endgroup::"
+
     - name: Start sccache server
       shell: bash
       run: |
