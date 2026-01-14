@@ -21,6 +21,7 @@ jobs:
           cache-key-prefix: 'sccache-test-${{ matrix.os }}'
 
       - name: Configure CMake
+        shell: bash
         run: |
           cmake -B build -S test \
             -DCMAKE_BUILD_TYPE=Release \
@@ -36,21 +37,19 @@ jobs:
 
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
+        shell: bash
         run: ./build/Release/hello_world.exe
 
       - name: Show sccache stats (mid-build)
         run: sccache --show-stats
 
       # Build again to verify cache hits
-      - name: Clean build directory (Unix)
-        if: runner.os != 'Windows'
+      - name: Clean build directory
+        shell: bash
         run: rm -rf build
 
-      - name: Clean build directory (Windows)
-        if: runner.os == 'Windows'
-        run: Remove-Item -Recurse -Force build
-
       - name: Configure CMake (second build)
+        shell: bash
         run: |
           cmake -B build -S test \
             -DCMAKE_BUILD_TYPE=Release \
