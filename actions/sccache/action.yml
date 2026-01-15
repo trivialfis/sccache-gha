@@ -189,3 +189,6 @@ runs:
         Write-Host "::group::sccache initial stats"
         sccache --show-stats
         Write-Host "::endgroup::"
+  post:
+    - run: sccache --show-stats
+    - run: sccache --stop-server
