@@ -18,7 +18,6 @@ jobs:
         uses: ./actions/sccache
         with:
           version: 'v0.13.0-rapids.0'
-          cache-key-prefix: 'sccache-test-${{ matrix.os }}'
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
