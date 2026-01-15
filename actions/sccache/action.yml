@@ -87,7 +87,14 @@ runs:
 
         # Download and extract
         cd /tmp
-        curl -fsSL -o sccache-archive.tar.gz "${URL}"
+        if command -v curl &> /dev/null; then
+            curl -fsSL -o sccache-archive.tar.gz "${URL}"
+        elif command -v wget &> /dev/null; then
+            wget -nv -O sccache-archive.tar.gz "${URL}"
+        else
+            echo "Error: Neither curl nor wget is installed" >&2
+            exit 1
+        fi
 
         tar -xzf sccache-archive.tar.gz
         mv "${FILENAME}/sccache" "${INSTALL_DIR}/"
