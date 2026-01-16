@@ -68,7 +68,7 @@ jobs:
         uses: ./actions/msvc-dev-env
 
       - name: Configure CMake
-        shell: pwsh
+        shell: powershell
         run: |
           cmake -B build -S test -GNinja `
             -DCMAKE_BUILD_TYPE=Release `
@@ -79,7 +79,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
-        shell: pwsh
+        shell: powershell
         run: .\build\hello_world
 
       - name: Show sccache stats (mid-build)
@@ -87,11 +87,11 @@ jobs:
 
       # Build again to verify cache hits
       - name: Clean build directory
-        shell: pwsh
+        shell: powershell
         run: Remove-Item -Recurse -Force build
 
       - name: Configure CMake (second build)
-        shell: pwsh
+        shell: powershell
         run: |
           cmake -B build -S test -GNinja `
             -DCMAKE_BUILD_TYPE=Release `
