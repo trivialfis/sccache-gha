@@ -23,11 +23,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          cmake -B build -S test -G Ninja \
+          cmake -B build -S test \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER_LAUNCHER=sccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
-            -DCMAKE_IGNORE_PATH="C:/mingw64/bin/;C:/Strawberry/c/bin/"
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
       - name: Configure CMake (Unix)
         if: runner.os != 'Windows'
@@ -57,11 +56,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          cmake -B build -S test -G Ninja \
+          cmake -B build -S test \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER_LAUNCHER=sccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
-            -DCMAKE_IGNORE_PATH="C:/mingw64/bin/;C:/Strawberry/c/bin/"
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
       - name: Configure CMake second build (Unix)
         if: runner.os != 'Windows'
