@@ -60,19 +60,6 @@ runs:
           "INCLUDE",
           "LIB",
           "LIBPATH",
-          "VS*",
-          "VCINSTALLDIR",
-          "VCToolsInstallDir",
-          "VCToolsRedistDir",
-          "VCToolsVersion",
-          "WindowsSDK*",
-          "UCRTVersion",
-          "UniversalCRTSdkDir",
-          "Framework*",
-          "NETFXSDKDir",
-          "DevEnvDir",
-          "ExtensionSdkDir",
-          "CommandPromptType",
           "Platform"
         )
         foreach ($pattern in $msvcVars) {
