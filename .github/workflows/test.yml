@@ -19,18 +19,9 @@ jobs:
         with:
           version: 'v0.13.0-rapids.0'
 
-      - name: Setup MSVC environment (Windows)
+      - name: Setup MSVC environment
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $vsPath = & $vswhere -latest -property installationPath
-          Import-Module "$vsPath\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
-          Enter-VsDevShell -VsInstallPath $vsPath -SkipAutomaticLocation -DevCmdArguments "-arch=x64 -host_arch=x64"
-          # Export environment variables for subsequent steps
-          Get-ChildItem env: | ForEach-Object {
-            "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV
-          }
+        uses: ./actions/msvc-dev-env
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
