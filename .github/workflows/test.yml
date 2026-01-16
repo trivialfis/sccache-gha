@@ -61,7 +61,7 @@ jobs:
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: .\build\Release\hello_world
+        run: .\build\hello_world
 
       - name: Show sccache stats (mid-build)
         run: sccache --show-stats
