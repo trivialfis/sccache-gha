@@ -40,9 +40,15 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Run tests
+      - name: Run tests (Unix
+        if: runner.os != 'Windows'
         shell: bash
         run: ./build/hello_world
+
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: .\build\Release\hello_world
 
       - name: Show sccache stats (mid-build)
         run: sccache --show-stats
