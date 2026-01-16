@@ -7,7 +7,7 @@ runs:
   steps:
     - name: Setup MSVC environment
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
       run: |
         # Map runner.arch to MSVC arch names
         $archMap = @{
